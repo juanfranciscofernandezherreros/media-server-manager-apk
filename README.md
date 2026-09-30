@@ -52,3 +52,21 @@ platforms/android/app/build/outputs/apk/debug/app-debug.apk
 La app no contiene credenciales de NordVPN ni acceso directo a Docker. Solo se comunica con el API del Media Server Manager.
 
 Para usarla remotamente, el dispositivo Android y el servidor deben estar conectados a la misma red Tailscale.
+
+
+## Instalación automática en Windows
+
+Desde PowerShell:
+
+\`\`\`powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\setup-android.ps1
+\`\`\`
+
+El script detecta y configura Android SDK, instala dependencias npm, elimina plugins Cordova obsoletos, recrea Android 14.0.1 y genera la APK de debug.
+
+Si solo quieres preparar el entorno sin compilar:
+
+\`\`\`powershell
+.\setup-android.ps1 -SkipBuild
+\`\`\`
