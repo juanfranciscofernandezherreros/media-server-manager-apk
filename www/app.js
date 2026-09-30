@@ -1,4 +1,4 @@
-const DEFAULT_SERVER = "http://media-server-share:8088";
+const DEFAULT_SERVER = "http://media-server-share:8090";
 const STORAGE_KEY = "mediaServerManagerUrl";
 
 const $ = (id) => document.getElementById(id);
