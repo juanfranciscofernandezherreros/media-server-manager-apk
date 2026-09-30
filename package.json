@@ -1,0 +1,26 @@
+{
+  "name": "media-server-manager-apk",
+  "displayName": "Media Server Manager",
+  "version": "0.1.0",
+  "description": "Cliente Android Cordova para Media Server Manager",
+  "author": "Juan Francisco Fernandez Herreros",
+  "license": "MIT",
+  "scripts": {
+    "android": "cordova build android",
+    "android:debug": "cordova build android --debug",
+    "android:release": "cordova build android --release"
+  },
+  "devDependencies": {
+    "cordova": "^12.0.0",
+    "cordova-android": "^14.0.1",
+    "cordova-plugin-whitelist": "^1.3.5"
+  },
+  "cordova": {
+    "plugins": {
+      "cordova-plugin-whitelist": {}
+    },
+    "platforms": [
+      "android"
+    ]
+  }
+}
