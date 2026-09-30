@@ -27,7 +27,7 @@ npm --version
 Write-Step "Comprobando Java 17"
 Require-Command "java" "Instala JDK 17: winget install -e --id EclipseAdoptium.Temurin.17.JDK"
 
-$javaVersionText = (& java -version 2>&1 | Out-String)
+$javaVersionText = (& cmd /c "java -version 2>&1" | Out-String)
 $javaMajor = $null
 if ($javaVersionText -match 'version "(\d+)') {
     $javaMajor = [int]$Matches[1]
@@ -61,13 +61,17 @@ foreach ($pattern in $jdk17Candidates) {
 
 if ($jdk17) {
     $env:CORDOVA_JAVA_HOME = $jdk17
+    $env:JAVA_HOME = $jdk17
+    $env:PATH = "$jdk17\bin;$env:PATH"
     [Environment]::SetEnvironmentVariable("CORDOVA_JAVA_HOME", $jdk17, "User")
+    [Environment]::SetEnvironmentVariable("JAVA_HOME", $jdk17, "User")
     Write-Host "CORDOVA_JAVA_HOME=$jdk17"
+    Write-Host "JAVA_HOME=$jdk17"
 } else {
-    Write-Host "No se pudo localizar automaticamente JDK 17 tras la instalacion." -ForegroundColor Yellow
+    throw "No se pudo localizar JDK 17 tras la instalacion."
 }
 
-java -version
+& "$jdk17\bin\java.exe" -version
 
 Write-Step "Localizando Android SDK"
 $sdkCandidates = @(
