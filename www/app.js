@@ -76,7 +76,7 @@ async function connect() {
     setStatus(
       "bad",
       "No se puede conectar",
-      "Comprueba Tailscale, el servidor y Media Server Manager"
+      "Error: " + (error && error.message ? error.message : "conexión rechazada")
     );
   }
 }
