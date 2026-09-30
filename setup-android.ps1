@@ -24,8 +24,49 @@ Require-Command "npm" "npm debe instalarse junto con Node.js."
 node --version
 npm --version
 
-Write-Step "Comprobando Java"
-Require-Command "java" "Instala JDK 17 o superior: winget install EclipseAdoptium.Temurin.17.JDK"
+Write-Step "Comprobando Java 17"
+Require-Command "java" "Instala JDK 17: winget install -e --id EclipseAdoptium.Temurin.17.JDK"
+
+$javaVersionText = (& java -version 2>&1 | Out-String)
+$javaMajor = $null
+if ($javaVersionText -match 'version "(\d+)') {
+    $javaMajor = [int]$Matches[1]
+}
+
+if ($javaMajor -ne 17) {
+    Write-Host "Se detecto Java $javaMajor, pero cordova-android 14 requiere JDK 17." -ForegroundColor Yellow
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        Write-Step "Instalando Eclipse Temurin JDK 17"
+        winget install -e --id EclipseAdoptium.Temurin.17.JDK --accept-package-agreements --accept-source-agreements
+    } else {
+        throw "Falta JDK 17 y winget no esta disponible. Instala Eclipse Temurin JDK 17."
+    }
+}
+
+$jdk17Candidates = @(
+    "C:\Program Files\Eclipse Adoptium\jdk-17*",
+    "C:\Program Files\Java\jdk-17*"
+)
+
+$jdk17 = $null
+foreach ($pattern in $jdk17Candidates) {
+    $match = Get-ChildItem $pattern -Directory -ErrorAction SilentlyContinue |
+        Sort-Object Name -Descending |
+        Select-Object -First 1
+    if ($match) {
+        $jdk17 = $match.FullName
+        break
+    }
+}
+
+if ($jdk17) {
+    $env:CORDOVA_JAVA_HOME = $jdk17
+    [Environment]::SetEnvironmentVariable("CORDOVA_JAVA_HOME", $jdk17, "User")
+    Write-Host "CORDOVA_JAVA_HOME=$jdk17"
+} else {
+    Write-Host "No se pudo localizar automaticamente JDK 17 tras la instalacion." -ForegroundColor Yellow
+}
+
 java -version
 
 Write-Step "Localizando Android SDK"
@@ -96,9 +137,32 @@ if ($sdkManager) {
     1..30 | ForEach-Object { "y" } | & sdkmanager --licenses | Out-Host
     & sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 } else {
-    Write-Host "sdkmanager no esta disponible; se omite la instalacion automatica de componentes." -ForegroundColor Yellow
-    Write-Host "Instala 'Android SDK Command-line Tools (latest)' desde Android Studio."
+    Write-Host ""
+    Write-Host "Falta Android SDK Command-line Tools (latest)." -ForegroundColor Red
+    Write-Host "Abre Android Studio -> Settings -> Languages & Frameworks -> Android SDK -> SDK Tools." -ForegroundColor Yellow
+    Write-Host "Marca 'Android SDK Command-line Tools (latest)' y pulsa Apply."
+    Write-Host ""
+    Write-Host "Despues vuelve a ejecutar este script."
+    exit 1
 }
+
+Write-Step "Comprobando Gradle"
+if (-not (Get-Command "gradle" -ErrorAction SilentlyContinue)) {
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        Write-Step "Instalando Gradle"
+        winget install -e --id Gradle.Gradle --accept-package-agreements --accept-source-agreements
+
+        # Refrescar PATH de la sesion actual tras winget.
+        $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+        $currentUserPath = [Environment]::GetEnvironmentVariable("Path", "User")
+        $env:PATH = "$machinePath;$currentUserPath"
+    } else {
+        throw "Gradle no esta instalado y winget no esta disponible. Instala Gradle manualmente."
+    }
+}
+
+Require-Command "gradle" "Instala Gradle con: winget install -e --id Gradle.Gradle"
+gradle --version
 
 Write-Step "Instalando dependencias npm"
 npm install
