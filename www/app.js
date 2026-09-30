@@ -1,4 +1,4 @@
-const DEFAULT_SERVER = "http://media-server-share:8090";
+const DEFAULT_SERVER = "http://media-server-share.taild3fa5b.ts.net:8090";
 const STORAGE_KEY = "mediaServerManagerUrl";
 
 const $ = (id) => document.getElementById(id);
@@ -10,7 +10,10 @@ function normalizeUrl(value) {
 function migrateStoredUrl(value) {
   const url = normalizeUrl(value);
 
-  if (url === "http://media-server-share:8088") {
+  if (
+    url === "http://media-server-share:8088" ||
+    url === "http://media-server-share:8090"
+  ) {
     return DEFAULT_SERVER;
   }
 
