@@ -9,8 +9,6 @@
 
     <content src="index.html" />
 
-    <plugin name="cordova-plugin-whitelist" spec="1" />
-
     <access origin="*" />
     <allow-navigation href="http://media-server-share:8088/*" />
     <allow-navigation href="http://*.ts.net/*" />
