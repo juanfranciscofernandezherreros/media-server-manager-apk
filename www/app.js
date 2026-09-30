@@ -55,10 +55,7 @@ async function checkHealth(url) {
 
 function openManager(url) {
   localStorage.setItem(STORAGE_KEY, url);
-  $("connected-host").textContent = url;
-  $("manager-frame").src = url;
-  $("connect-screen").classList.add("hidden");
-  $("manager-screen").classList.remove("hidden");
+  window.location.replace(url);
 }
 
 async function connect() {
@@ -84,14 +81,6 @@ async function connect() {
   }
 }
 
-function showSettings() {
-  $("manager-frame").src = "about:blank";
-  $("manager-screen").classList.add("hidden");
-  $("connect-screen").classList.remove("hidden");
-  $("server-url").value = getServerUrl();
-  setStatus("checking", "Listo para conectar", "Pulsa Conectar para comprobar el servidor");
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   const storedUrl = migrateStoredUrl(localStorage.getItem(STORAGE_KEY));
 
@@ -102,11 +91,5 @@ document.addEventListener("DOMContentLoaded", () => {
   $("server-url").value = storedUrl || DEFAULT_SERVER;
   $("connect-btn").addEventListener("click", connect);
   $("retry-btn").addEventListener("click", connect);
-  $("reload-btn").addEventListener("click", () => {
-    const frame = $("manager-frame");
-    frame.src = frame.src;
-  });
-  $("settings-btn").addEventListener("click", showSettings);
-
   setTimeout(connect, 300);
 });
