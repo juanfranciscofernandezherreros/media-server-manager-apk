@@ -1,5 +1,6 @@
 param(
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [switch]$NoPull
 )
 
 $ErrorActionPreference = "Stop"
@@ -16,7 +17,37 @@ function Require-Command($name, $help) {
 }
 
 Write-Host "Media Server Manager APK - Android setup" -ForegroundColor Green
-Write-Host "Este script configurara el entorno y preparara la APK." -ForegroundColor DarkGray
+Write-Host "Este script actualiza main, prepara Android desde cero y genera la APK." -ForegroundColor DarkGray
+
+Write-Step "Comprobando repositorio Git"
+Require-Command "git" "Instala Git y asegurate de que esta disponible en PATH."
+
+if (-not (Test-Path ".git")) {
+    throw "Ejecuta este script desde la raiz de media-server-manager-apk."
+}
+
+if (-not $NoPull) {
+    Write-Step "Actualizando rama main"
+
+    git fetch origin
+    if ($LASTEXITCODE -ne 0) {
+        throw "git fetch ha fallado."
+    }
+
+    git checkout main
+    if ($LASTEXITCODE -ne 0) {
+        throw "No se pudo cambiar a la rama main. Revisa si tienes cambios locales sin guardar."
+    }
+
+    git pull --ff-only origin main
+    if ($LASTEXITCODE -ne 0) {
+        throw "git pull --ff-only ha fallado. Revisa si tu rama local diverge de origin/main."
+    }
+
+    Write-Host "Repositorio actualizado a origin/main." -ForegroundColor Green
+} else {
+    Write-Host "Actualizacion Git omitida por -NoPull." -ForegroundColor Yellow
+}
 
 Write-Step "Comprobando Node.js y npm"
 Require-Command "node" "Instala Node.js 20 o superior: winget install OpenJS.NodeJS.LTS"
@@ -199,24 +230,49 @@ Write-Step "Eliminando plugin Cordova obsoleto si aun existe"
 try { npx cordova plugin remove cordova-plugin-whitelist | Out-Host } catch {}
 try { npm uninstall cordova-plugin-whitelist --no-save | Out-Host } catch {}
 
-Write-Step "Recreando plataforma Android"
+Write-Step "Limpiando plataforma Android generada"
 if (Test-Path "platforms\android") {
     npx cordova platform remove android
+    if ($LASTEXITCODE -ne 0) {
+        throw "No se pudo eliminar la plataforma Android existente."
+    }
 }
+
+Write-Step "Recreando Android 14.0.1 desde config.xml"
 npx cordova platform add android@14.0.1
+if ($LASTEXITCODE -ne 0) {
+    throw "No se pudo agregar cordova-android 14.0.1."
+}
+
+Write-Step "Preparando proyecto Android"
+npx cordova prepare android
+if ($LASTEXITCODE -ne 0) {
+    throw "cordova prepare android ha fallado."
+}
 
 Write-Step "Comprobando requisitos Cordova"
 npx cordova requirements android
+if ($LASTEXITCODE -ne 0) {
+    throw "Los requisitos de Cordova Android no se cumplen."
+}
 
 if (-not $SkipBuild) {
     Write-Step "Compilando APK debug"
     npx cordova build android --debug
+    if ($LASTEXITCODE -ne 0) {
+        throw "La compilacion de la APK ha fallado."
+    }
 
     $apk = Join-Path (Get-Location) "platforms\android\app\build\outputs\apk\debug\app-debug.apk"
     if (Test-Path $apk) {
         Write-Host ""
         Write-Host "APK generada correctamente:" -ForegroundColor Green
         Write-Host $apk -ForegroundColor White
+        Write-Host ""
+        Write-Host "Servidor por defecto:" -ForegroundColor Green
+        Write-Host "  http://media-server-share:8090" -ForegroundColor White
+        Write-Host ""
+        Write-Host "Desinstala la APK anterior del movil antes de instalar esta si quieres limpiar completamente los datos antiguos." -ForegroundColor Yellow
     } else {
         throw "La compilacion termino pero no se encontro la APK esperada."
     }
