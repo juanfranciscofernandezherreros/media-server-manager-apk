@@ -63,10 +63,23 @@ Set-ExecutionPolicy -Scope Process Bypass
 .\setup-android.ps1
 \`\`\`
 
-El script detecta y configura Android SDK, instala dependencias npm, elimina plugins Cordova obsoletos, recrea Android 14.0.1 y genera la APK de debug.
+El script actualiza la rama `main`, detecta y configura Android SDK, instala dependencias npm, elimina plugins Cordova obsoletos, elimina cualquier plataforma Android generada anteriormente, recrea Android 14.0.1 desde `config.xml`, ejecuta `cordova prepare` y genera la APK de debug.
 
 Si solo quieres preparar el entorno sin compilar:
 
 \`\`\`powershell
 .\setup-android.ps1 -SkipBuild
 \`\`\`
+
+
+Si quieres ejecutar el proceso sin hacer `git pull`:
+
+```powershell
+.\setup-android.ps1 -NoPull
+```
+
+La APK generada queda en:
+
+```text
+platforms\android\app\build\outputs\apk\debug\app-debug.apk
+```
