@@ -21,7 +21,7 @@ Docker / Jellyfin / Sonarr / Radarr / Deluge / Gluetun / ...
 La app propone por defecto:
 
 ```
-http://media-server-share:8090
+http://media-server-share.taild3fa5b.ts.net:8090
 ```
 
 La URL puede cambiarse desde la pantalla de conexión sin recompilar la APK.
