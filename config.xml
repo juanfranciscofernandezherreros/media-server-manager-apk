@@ -20,6 +20,8 @@
     <preference name="Fullscreen" value="false" />
     <preference name="DisallowOverscroll" value="true" />
     <preference name="AndroidLaunchMode" value="singleTask" />
+    <preference name="scheme" value="http" />
+    <preference name="hostname" value="localhost" />
 
     <platform name="android">
         <preference name="android-minSdkVersion" value="24" />
