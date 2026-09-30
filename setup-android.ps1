@@ -152,20 +152,44 @@ if ($sdkManager) {
 
 Write-Step "Comprobando Gradle"
 if (-not (Get-Command "gradle" -ErrorAction SilentlyContinue)) {
-    if (Get-Command winget -ErrorAction SilentlyContinue) {
-        Write-Step "Instalando Gradle"
-        winget install -e --id Gradle.Gradle --accept-package-agreements --accept-source-agreements
+    Write-Step "Instalando Gradle 8.13"
 
-        # Refrescar PATH de la sesion actual tras winget.
-        $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
-        $currentUserPath = [Environment]::GetEnvironmentVariable("Path", "User")
-        $env:PATH = "$machinePath;$currentUserPath"
-    } else {
-        throw "Gradle no esta instalado y winget no esta disponible. Instala Gradle manualmente."
+    $gradleVersion = "8.13"
+    $gradleBase = Join-Path $env:LOCALAPPDATA "Gradle"
+    $gradleHome = Join-Path $gradleBase "gradle-$gradleVersion"
+    $gradleZip = Join-Path $env:TEMP "gradle-$gradleVersion-bin.zip"
+
+    if (-not (Test-Path $gradleHome)) {
+        New-Item -ItemType Directory -Force -Path $gradleBase | Out-Null
+        Invoke-WebRequest -Uri "https://services.gradle.org/distributions/gradle-$gradleVersion-bin.zip" -OutFile $gradleZip
+        Expand-Archive -Path $gradleZip -DestinationPath $gradleBase -Force
+        Remove-Item $gradleZip -Force -ErrorAction SilentlyContinue
     }
+
+    $gradleBin = Join-Path $gradleHome "bin"
+    if (-not (Test-Path (Join-Path $gradleBin "gradle.bat"))) {
+        throw "No se encontro gradle.bat tras instalar Gradle $gradleVersion."
+    }
+
+    if ($env:PATH -notlike "*$gradleBin*") {
+        $env:PATH = "$gradleBin;$env:PATH"
+    }
+
+    $gradleUserPath = [Environment]::GetEnvironmentVariable("Path", "User")
+    if ($gradleUserPath -notlike "*$gradleBin*") {
+        if ([string]::IsNullOrWhiteSpace($gradleUserPath)) {
+            $gradleUserPath = $gradleBin
+        } else {
+            $gradleUserPath += ";$gradleBin"
+        }
+        [Environment]::SetEnvironmentVariable("Path", $gradleUserPath, "User")
+    }
+
+    [Environment]::SetEnvironmentVariable("GRADLE_HOME", $gradleHome, "User")
+    $env:GRADLE_HOME = $gradleHome
 }
 
-Require-Command "gradle" "Instala Gradle con: winget install -e --id Gradle.Gradle"
+Require-Command "gradle" "No se pudo instalar Gradle automaticamente."
 gradle --version
 
 Write-Step "Instalando dependencias npm"
