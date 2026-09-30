@@ -10,7 +10,7 @@
     <content src="index.html" />
 
     <access origin="*" />
-    <allow-navigation href="http://media-server-share:8088/*" />
+    <allow-navigation href="http://media-server-share:8090/*" />
     <allow-navigation href="http://*.ts.net/*" />
     <allow-navigation href="https://*.ts.net/*" />
     <allow-navigation href="http://100.*/*" />
