@@ -7,6 +7,16 @@ function normalizeUrl(value) {
   return String(value || "").trim().replace(/\/+$/, "");
 }
 
+function migrateStoredUrl(value) {
+  const url = normalizeUrl(value);
+
+  if (url === "http://media-server-share:8088") {
+    return DEFAULT_SERVER;
+  }
+
+  return url;
+}
+
 function setStatus(type, title, detail) {
   $("status-dot").className = "dot " + type;
   $("status-title").textContent = title;
@@ -14,7 +24,13 @@ function setStatus(type, title, detail) {
 }
 
 function getServerUrl() {
-  return normalizeUrl(localStorage.getItem(STORAGE_KEY) || $("server-url").value || DEFAULT_SERVER);
+  const storedUrl = migrateStoredUrl(localStorage.getItem(STORAGE_KEY));
+
+  if (storedUrl) {
+    localStorage.setItem(STORAGE_KEY, storedUrl);
+  }
+
+  return normalizeUrl(storedUrl || $("server-url").value || DEFAULT_SERVER);
 }
 
 async function checkHealth(url) {
@@ -74,7 +90,13 @@ function showSettings() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  $("server-url").value = localStorage.getItem(STORAGE_KEY) || DEFAULT_SERVER;
+  const storedUrl = migrateStoredUrl(localStorage.getItem(STORAGE_KEY));
+
+  if (storedUrl) {
+    localStorage.setItem(STORAGE_KEY, storedUrl);
+  }
+
+  $("server-url").value = storedUrl || DEFAULT_SERVER;
   $("connect-btn").addEventListener("click", connect);
   $("retry-btn").addEventListener("click", connect);
   $("reload-btn").addEventListener("click", () => {
